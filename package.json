@@ -101,7 +101,7 @@
         "outputDir": "jupyterlab_notebook_awareness/labextension",
         "sharedPackages": {
             "@jupyter/collaborative-drive": {
-                "bundled": false,
+                "bundled": true,
                 "singleton": true
             }
         }
