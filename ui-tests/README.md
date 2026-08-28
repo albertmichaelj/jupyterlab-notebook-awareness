@@ -12,7 +12,6 @@ in [jupyter_server_test_config.py](./jupyter_server_test_config.py).
 
 The default configuration will produce video for failing tests and an HTML report.
 
-
 ## Run the tests
 
 > All commands are assumed to be executed from the root directory
