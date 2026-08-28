@@ -64,13 +64,16 @@ const plugin: JupyterFrontEndPlugin<void> = {
       if (!globalAwareness) {
         return;
       }
-      let notebookCount = 0;
-      notebookTracker.forEach(() => {
-        notebookCount++;
+      const openPaths: string[] = [];
+      notebookTracker.forEach(panel => {
+        const path = panel.context?.path;
+        if (path) {
+          openPaths.push(path);
+        }
       });
       const next = nextGlobalNotebookPath(
         notebookTracker.currentWidget?.context?.path || null,
-        notebookCount,
+        openPaths,
         publishedPath
       );
       if (next !== publishedPath) {

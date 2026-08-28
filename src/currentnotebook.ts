@@ -31,27 +31,38 @@ export const GLOBAL_NOTEBOOK_PATH_FIELD = 'notebookPath';
 /**
  * The next value of the global notebook path.
  *
- * Pure, so the stickiness rule is testable without a JupyterLab shell.
+ * The value means: **the most recently focused notebook that is still open.**
+ *
+ * Stickiness is what makes the field useful -- `INotebookTracker` keeps its
+ * current widget when focus moves to a chat, so the answer survives the user
+ * going to ask a question. But it must not outlive the notebook it names.
+ * Lumino's `FocusTracker`, on disposal of the current widget, falls back to the
+ * remaining widget with the highest focus number *among those that have ever
+ * been focused*; a notebook that was opened but never clicked has focus number
+ * -1 and is skipped. So closing the focused notebook while every other open
+ * notebook is untouched leaves `current` null -- and remembering the previous
+ * value there would publish the path of a notebook that no longer exists.
+ *
+ * Hence the guard: keep the previous value only while it is still open, and
+ * otherwise report nothing. "Nothing" is the honest answer when the user has
+ * not been in any of the notebooks that remain, and a consumer that says "I
+ * cannot tell which notebook you mean" is better than one confidently
+ * answering about a file the user never opened.
  *
  * @param current - path of the tracker's current notebook, or null
- * @param notebookCount - how many notebooks are open
+ * @param openPaths - paths of every notebook currently open
  * @param previous - the value published last time
  */
 export function nextGlobalNotebookPath(
   current: string | null,
-  notebookCount: number,
+  openPaths: readonly string[],
   previous: string | null
 ): string | null {
   if (current) {
     return current;
   }
-  if (notebookCount === 0) {
-    // Nothing is open, so there is no current notebook to remember. Clearing
-    // matters: a stale path would otherwise outlive the notebook it names.
-    return null;
+  if (previous && openPaths.includes(previous)) {
+    return previous;
   }
-  // A notebook is open but the tracker has no current widget. Keep the last
-  // one rather than reporting "none" -- this is the case that makes the value
-  // useful, because it is what happens while the user is typing in a chat.
-  return previous;
+  return null;
 }
